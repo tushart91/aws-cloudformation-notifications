@@ -3,14 +3,20 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "Configure SNS topics to subscribe to specific CloudFormation notifications and forward them to users"
 
+
+Parameters:
+  PhoneNumber:
+    Type: String
+    Description: Phone number with country code (eg. +19876543210)
+
 Resources:
   # SNS topic to send emails to users (used inside Lambda function)
-  SNSTopicEmail:
+  SNSTopicCloudformationNotifications:
     Type: "AWS::SNS::Topic"
     Properties:
       Subscription:
-        - Endpoint: "replaceme@example.com" # PUT YOUR EMAIL ADDRESS HERE
-          Protocol: "email"
+        - Endpoint: !Ref PhoneNumber
+          Protocol: "sms"
 
   # IAM role and inline policy for Lambda function
   LambdaRole:
@@ -37,7 +43,7 @@ Resources:
                 Effect: "Allow"
                 Action:
                   - "sns:Publish"
-                Resource: !Ref "SNSTopicEmail"
+                Resource: !Ref "SNSTopicCloudformationNotifications"
               -
                 Effect: "Allow"
                 Action:
@@ -62,7 +68,7 @@ Resources:
       Role: !GetAtt "LambdaRole.Arn"
       Environment:
         Variables:
-          SNS_TOPIC_ARN: !Ref "SNSTopicEmail"
+          SNS_TOPIC_ARN: !Ref "SNSTopicCloudformationNotifications"
           NOTIFICATION_TYPES: "CREATE_COMPLETE,UPDATE_COMPLETE,ROLLBACK_IN_PROGRESS"
       Code:
         ZipFile: |

@@ -23,28 +23,11 @@ These are the main components of the CloudFormation stack created by this templa
 
 * `SNSTopicCloudFormation`: an SNS topic that _listens_ to CloudFormation events and forwards them to a Lambda function
 * `LambdaFunction`: a Lambda function capable of sending email messages through SNS. This function works like an input filter, as described below
-* `SNSTopicEmail`: an SNS topic that sends email messages to users - _called_ from the Lambda function above
+* `SNSTopicCloudformationNotifications`: an SNS topic that sends sms messages to users - _called_ from the Lambda function above
 
 Because we generally don't want to get email notifications about all possible CloudFormation events, we can tell the Lambda function to only keep the types of notifications that interest us - it filters out unwanted noise. (See `NOTIFICATION_TYPES` [below](#changing-the-default-parameters))
 
 When you create this CloudFormation stack, it outputs the ARN associated with `SNSTopicCloudFormation`. Later on, whenever you create other CloudFormation stacks, you can use that ARN with the `--notification-arns` option in order to let that topic _listen_ to events coming from those new stacks.
-
-## Usage
-
-Start by opening the CloudFormation template and replacing the dummy email address. You can also add more email addresses if you want:
-
-```YAML
-Resources:
-  # SNS topic to send emails to users (used inside Lambda function)
-  SNSTopicEmail:
-    Type: "AWS::SNS::Topic"
-    Properties:
-      Subscription:
-        - Endpoint: "my-real-email-address@example.com"
-          Protocol: "email"
-        - Endpoint: "sivuca@jazz.com.br"
-          Protocol: "email"
-```
 
 ### Create stack
 
@@ -54,7 +37,8 @@ Create the CloudFormation stack with the following command:
 $ aws cloudformation create-stack \
 --stack-name cloudformation-notifications \
 --template-body file://cloudformation-notifications.yaml \
---capabilities CAPABILITY_IAM
+--capabilities CAPABILITY_IAM \
+--parameters PhoneNumber=+19876543210
 ```
 
 If you are not familiar with the `--capabilities` parameter, you can find more information about it [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html#API_CreateStack_RequestParameters).
